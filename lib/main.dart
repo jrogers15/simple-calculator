@@ -7,6 +7,9 @@ edits: added things such as additional functions (like inversions, clear entry, 
 THINGS THAT DON'T WORK:
       why does square root not work >:(
       inversion interprets multiple inversions wrong
+      TODO:
+        Make a history menu
+        Complete assignment report
 */
 import 'dart:io' show Platform;
 import 'package:window_size/window_size.dart';
@@ -34,10 +37,23 @@ class SimpleCalculator extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => Home(),
-          '/sci': (context) => Scientific(),
+          '/his': (context) => History(),
         });
   }
 }
+
+class AppState extends ChangeNotifier {
+  var eqhis = <String>[];
+  var awhis = <String>[];
+
+  void add(eqadd, awadd) {
+    eqhis.add(eqadd);
+    awhis.add(awadd);
+    notifyListeners();
+  }
+}
+
+final instance = AppState();
 
 class Home extends StatefulWidget {
   @override
@@ -82,7 +98,8 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.teal[300],
       ),
       drawer: Drawer(
-        width: MediaQuery.of(context).size.width * 0.5,
+        width: MediaQuery.of(context).size.width * 0.7,
+        backgroundColor: Colors.black,
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
@@ -91,7 +108,7 @@ class _HomeState extends State<Home> {
                 color: Colors.teal[300],
               ),
               child: const Text(
-                'Pick a Calculator',
+                'Pick a Feature',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -99,23 +116,25 @@ class _HomeState extends State<Home> {
               ),
             ),
             ListTile(
-                leading: const Icon(Icons.calculate),
-                title: const Text('Standard Calculator'),
+                leading: const Icon(Icons.calculate, color: Colors.white),
+                title: const Text('Standard Calculator',
+                    style: TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pushNamed(context, '/');
                 }),
             ListTile(
-                leading: const Icon(Icons.science),
-                title: const Text('Scientific Calculator'),
+                leading: const Icon(Icons.history, color: Colors.white),
+                title: const Text('Calculation History',
+                    style: TextStyle(color: Colors.white)),
                 onTap: () {
-                  Navigator.pushNamed(context, '/sci');
+                  Navigator.pushNamed(context, '/his');
                 }),
             const AboutListTile(
-              icon: Icon(Icons.info),
+              icon: Icon(Icons.info, color: Colors.white),
               applicationName: 'Simple Calculator',
               applicationVersion: '1.0',
               applicationLegalese: 'Edited by Jacob Rogers',
-              child: Text('About App'),
+              child: Text('About App', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -269,6 +288,33 @@ class _HomeState extends State<Home> {
                   } else if (index == 20) {
                     //negative
                     return MyButton(
+                      buttonTapped: () {
+                        setState(() {
+                          int i = 0;
+                          for (i = input.length - 1; i > 0; i--) {
+                            if (isOperator(input.substring(i, i + 1)) &&
+                                input.substring(i, i + 1) != '-') {
+                              String replace = '-${input.substring(i + 1)}';
+                              input = input.substring(0, i);
+                              input += replace;
+                              i = -2;
+                            } else if (isOperator(input.substring(i, i + 1)) &&
+                                input.substring(i, i + 1) == '-') {
+                              String replace = '+${input.substring(i + 1)}';
+                              input = input.substring(0, i);
+                              input += replace;
+                              i = -2;
+                            }
+                          }
+                          if (i != -3) {
+                            input = '-$input';
+                          }
+                          if (input.substring(0, 2) == "-+" ||
+                              input.substring(0, 2) == "--") {
+                            input = input.substring(2);
+                          }
+                        });
+                      },
                       buttonText: buttons[index],
                       color: Colors.teal[300],
                       textColor: Colors.black,
@@ -300,9 +346,7 @@ class _HomeState extends State<Home> {
                       color: isOperator(buttons[index])
                           ? Colors.tealAccent[700]
                           : Colors.white,
-                      textColor: isOperator(buttons[index])
-                          ? Colors.white
-                          : Colors.tealAccent[700],
+                      textColor: Colors.black,
                     );
                   }
                 }),
@@ -327,6 +371,7 @@ class _HomeState extends State<Home> {
       ContextModel cm = ContextModel();
       double eval = exp.evaluate(EvaluationType.REAL, cm);
       answer = eval.toString();
+      instance.add(input, answer);
       input = '';
     } catch (error) {
       answer = "Invalid input.";
@@ -334,12 +379,12 @@ class _HomeState extends State<Home> {
   }
 }
 
-class Scientific extends StatefulWidget {
+class History extends StatefulWidget {
   @override
-  State createState() => _ScientificState();
+  State createState() => _HistoryState();
 }
 
-class _ScientificState extends State<Scientific> {
+class _HistoryState extends State<History> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -349,7 +394,8 @@ class _ScientificState extends State<Scientific> {
         backgroundColor: Colors.teal[300],
       ),
       drawer: Drawer(
-        width: MediaQuery.of(context).size.width * 0.5,
+        width: MediaQuery.of(context).size.width * 0.7,
+        backgroundColor: Colors.black,
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
@@ -358,7 +404,7 @@ class _ScientificState extends State<Scientific> {
                 color: Colors.teal[300],
               ),
               child: const Text(
-                'Pick a Calculator',
+                'Pick a Feature',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -366,31 +412,53 @@ class _ScientificState extends State<Scientific> {
               ),
             ),
             ListTile(
-                leading: const Icon(Icons.calculate),
-                title: const Text('Standard Calculator'),
+                leading: const Icon(Icons.calculate, color: Colors.white),
+                title: const Text('Standard Calculator',
+                    style: TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pushNamed(context, '/');
                 }),
             ListTile(
-                leading: const Icon(Icons.science),
-                title: const Text('Scientific Calculator'),
+                leading: const Icon(Icons.history, color: Colors.white),
+                title: const Text('Calculation History',
+                    style: TextStyle(color: Colors.white)),
                 onTap: () {
-                  Navigator.pushNamed(context, '/sci');
+                  Navigator.pushNamed(context, '/his');
                 }),
             const AboutListTile(
-              icon: Icon(Icons.info),
+              icon: Icon(Icons.info, color: Colors.white),
               applicationName: 'Simple Calculator',
               applicationVersion: '1.0',
               applicationLegalese: 'Edited by Jacob Rogers',
-              child: Text('About App'),
+              child: Text('About App', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
       ),
       backgroundColor: Colors.white10,
-      body: const Text(
-          style: TextStyle(color: Colors.white),
-          'Yeah, no. That\'s way too complicated for a program of this size.'),
+      body:
+          ListView(padding: const EdgeInsets.fromLTRB(0, 0, 0, 30), children: [
+        const Padding(
+            padding: EdgeInsets.all(10),
+            child: Text("Answer History",
+                style: TextStyle(color: Colors.white, fontSize: 24))),
+        for (int i = 0; i < instance.awhis.length; i++)
+          ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  side: BorderSide(color: Colors.black)),
+              tileColor: Colors.white24,
+              textColor: Colors.white,
+              title: RichText(
+                  text: TextSpan(
+                      text: "${instance.eqhis[i]}\n= ",
+                      children: <TextSpan>[
+                    TextSpan(
+                        text: instance.awhis[i],
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16))
+                  ])))
+      ]),
     );
   }
 }

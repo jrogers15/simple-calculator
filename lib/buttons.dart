@@ -6,7 +6,7 @@ class MyButton extends StatelessWidget {
   final String buttonText;
   final buttonTapped;
 
-  MyButton(
+  const MyButton(
       {this.color,
       this.textColor,
       required this.buttonText,
